@@ -1,6 +1,7 @@
 <template>
   <div class="login">
     <div class="container">
+      <!-- Seção de introdução -->
       <div class="background">
         <div class="container2">
           <img
@@ -15,12 +16,15 @@
           </div>
         </div>
       </div>
+
+      <!-- Seção de formulário -->
       <div class="background2">
         <div class="container2">
           <div class="background-border-shadow">
             <div class="heading-3">
               <div class="login2">Login</div>
             </div>
+
             <form class="form" @submit.prevent="onSubmit">
               <label class="label-email" for="email">Email</label>
               <input
@@ -33,25 +37,21 @@
                 autocomplete="username"
               />
 
-              <label class="label-password" for="password">Senha</label>
-              <input
-                id="password"
-                v-model="password"
-                class="input2"
-                type="password"
-                placeholder="********"
-                required
-                autocomplete="current-password"
-              />
-
-              <div class="link">
-                <a class="esqueceu-a-senha" href="#">Esqueceu a senha?</a>
-              </div>
-
               <button class="button2" type="submit">
-                <span class="entrar">Entrar</span>
+                <span class="entrar">Entrar com Magic Link</span>
               </button>
             </form>
+
+            <div v-if="linkEnviado" class="verifique-email">
+              <p>Enviamos um link de acesso para <strong>{{ email }}</strong>.</p>
+              <p>
+                Clique no botão abaixo para simular o acesso via Magic Link.
+              </p>
+              <button class="button2" @click="acessarDashboard">
+                <span class="entrar">Acessar Dashboard</span>
+              </button>
+            </div>
+
             <div class="ajuda">
               <span class="precisa-de-ajuda">Precisa de ajuda?</span>
               <a class="entre-em-contato" href="#">Entre em contato</a>
@@ -70,23 +70,23 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '~/composables/auth'
 
-const email = ref('admin@gmail.com') // login padrão atualizado
-const password = ref('12345') // senha padrão atualizada
+const email = ref('')
+const linkEnviado = ref(false)
 const router = useRouter()
-const { login } = useAuth()
 
-async function onSubmit() {
-  // Exemplo de autenticação, ajuste conforme seu useAuth
-  const ok = await login({ username: email.value, password: password.value })
-  if (ok) {
-    router.push('/board')
-  } else {
-    alert('Usuário ou senha inválidos')
-  }
+function onSubmit() {
+  // Simula o envio do Magic Link
+  linkEnviado.value = true
+  // Em um ambiente real, aqui você chamaria o backend para enviar o e-mail
+}
+
+function acessarDashboard() {
+  // Simula a autenticação e redireciona para o dashboard
+  router.push('/dashboard')
 }
 </script>
+
 
 <style scoped>
 .login,

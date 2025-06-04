@@ -1,4 +1,3 @@
-import { FetchError } from "ofetch";
 import type { User } from "~/shared/types/auth/user";
 import type { UserLogin } from "~/shared/types/auth/user-login";
 import type { UserRegister } from "~/shared/types/auth/user-register";
@@ -13,6 +12,15 @@ interface UserError {
   message?: string;
 }
 
+const MOCK_USER: User = {
+  uuid: "1",
+  username: "admin",
+  first_name: "Admin",
+  last_name: "User",
+  email: "admin@gmail.com",
+  role: "admin",
+};
+
 /**
  * Auth functions interface to handle user authentication logic.
  */
@@ -21,67 +29,34 @@ export const useAuth = () => {
   const error = useState<UserError | null>("auth-error", () => null);
 
   async function login(body: UserLogin) {
-    try {
-      const headers = useRequestHeaders(["cookie"]);
-      const res = await $fetch<User>("/api/auth/login", {
-        method: "POST",
-        body,
-        headers,
-      });
-
-      return await _setState(res);
-    } catch (e: any) {
-      error.value = buildError(e);
+    if (body.username === "admin@gmail.com" && body.password === "12345") {
+      await _setState(MOCK_USER);
+      return true;
+    } else {
+      error.value = { code: 401, message: "Usuário ou senha inválidos" };
+      return false;
     }
   }
 
   async function register(body: UserRegister) {
-    try {
-      return await $fetch<User>("/api/auth/register", {
-        method: "POST",
-        body,
-      });
-    } catch (e: any) {
-      error.value = buildError(e);
-    }
+    // Mock: sempre retorna sucesso
+    return { ...MOCK_USER, ...body };
   }
 
   async function logout() {
-    try {
-      const headers = useRequestHeaders(["cookie"]);
-      await $fetch("/api/auth/logout", {
-        method: "POST",
-        headers,
-      });
-
-      return await _clearState();
-    } catch (e: any) {
-      error.value = buildError(e);
-    }
+    await _clearState();
+    return true;
   }
 
   async function initState() {
-    const session = useCookie("SESSION_ID");
-    if (!session.value) return;
-
-    const user = await getUser();
-    if (error.value) {
-      return;
-    }
-
-    await _setState(user!);
+    // Mock: não faz nada
+    return;
   }
 
   async function getUser() {
-    try {
-      const headers = useRequestHeaders(["cookie"]);
-      return await $fetch<User>("/api/auth/me", {
-        credentials: "include",
-        headers,
-      });
-    } catch (e: any) {
-      error.value = buildError(e);
-    }
+    if (state.value.isLoggedIn) return state.value.user;
+    error.value = { code: 401, message: "Não autenticado" };
+    return null;
   }
 
   function clearError() {
@@ -99,17 +74,6 @@ export const useAuth = () => {
     state.value = {
       isLoggedIn: true,
       user,
-    };
-  }
-
-  function buildError(e: any): UserError {
-    if (e instanceof FetchError) {
-      return { code: e.statusCode, message: e.message };
-    }
-
-    return {
-      code: 500,
-      message: "Something went wrong!",
     };
   }
 
